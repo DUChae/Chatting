@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>실시간 채팅</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="chat-container">
+      <ul id="messages"></ul>
+      <form id="form" action="">
+        <input id="input" autocomplete="off" placeholder="메시지 입력..." />
+        <button>전송</button>
+      </form>
+    </div>
+
+    <div id="username-modal">
+      <div class="modal-content">
+        <h2>사용자 이름 설정</h2>
+        <input id="username-input" placeholder="이름을 입력하세요" />
+        <button id="username-submit">시작하기</button>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
