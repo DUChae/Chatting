@@ -1,9 +1,23 @@
 const express = require("express");
 const app = express();
 const http = require("http");
+const { default: mongoose } = require("mongoose");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
+
+mongoose
+  .connect("mongodb://localhost:27017/chat-app")
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+const chatMessageSchema = new mongoose.Schema({
+  user: String,
+  msg: String,
+  timestamp: { type: Date, default: Date.now },
+});
+
+const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
 
 app.use(express.static("public"));
 
@@ -19,7 +33,14 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("chat message", (data) => {
+  socket.on("chat message", async (data) => {
+    const chatMessage = new ChatMessage({
+      user: data.user,
+      msg: data.msg,
+    });
+
+    await chatMessage.save();
+
     io.emit("chat message", data);
   });
 
