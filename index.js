@@ -21,9 +21,19 @@ const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
 
 app.use(express.static("public"));
 
-io.on("connection", (socket) => {
+//유저 연결 시
+io.on("connection", async (socket) => {
   let username = null;
   console.log("유저가 연결되었습니다.");
+
+  //DB에서 모든 채팅 기록 불러오기
+  try {
+    const messages = await ChatMessage.find().sort({ timestamp: 1 }).limit(100);
+    //현재 접속한 유저에게 채팅 기록 전송
+    socket.emit("chat history", messages);
+  } catch (err) {
+    console.error("채팅 기록 불러오기 오류:", err);
+  }
 
   socket.on("new user", (name) => {
     username = name;
@@ -33,17 +43,22 @@ io.on("connection", (socket) => {
     });
   });
 
+  //채팅 메시지 수신 시
   socket.on("chat message", async (data) => {
+    //메세지 객체 생성 및 필터링
     const chatMessage = new ChatMessage({
       user: data.user,
       msg: data.msg,
     });
 
+    //메세지 저장
     await chatMessage.save();
 
+    //메세지 브로드캐스트
     io.emit("chat message", data);
   });
 
+  //유저 연결 해제 시
   socket.on("disconnect", () => {
     console.log("유저가 연결을 끊었습니다.");
     if (username) {
