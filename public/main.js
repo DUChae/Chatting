@@ -9,6 +9,7 @@ const usernameSubmit = document.getElementById("username-submit");
 const chatContainer = document.getElementById("chat-container");
 let username;
 
+//유저 이름 제출 시
 usernameSubmit.addEventListener("click", () => {
   if (usernameInput.value) {
     username = usernameInput.value;
@@ -17,6 +18,8 @@ usernameSubmit.addEventListener("click", () => {
     socket.emit("new user", username);
   }
 });
+
+// 채팅 메시지 전송
 form.addEventListener("submit", (e) => {
   e.preventDefault();
   if (input.value) {
@@ -25,6 +28,23 @@ form.addEventListener("submit", (e) => {
   }
 });
 
+// 채팅 기록 수신 시
+socket.on("chat history", (msgs) => {
+  messages.innerHTML = ""; // 전역 변수 messages(HTML 요소)에 접근
+  msgs.forEach((data) => {
+    const item = document.createElement("li");
+    if (data.user === "시스템") {
+      item.textContent = data.msg;
+      item.style.fontWeight = "bold";
+    } else {
+      item.innerHTML = `<strong>${data.user}</strong>: ${data.msg}`;
+    }
+    messages.appendChild(item); // 전역 변수 messages(HTML 요소)에 추가
+  });
+  window.scrollTo(0, document.body.scrollHeight);
+});
+
+// 실시간 채팅 메시지 수신 시
 socket.on("chat message", (data) => {
   const item = document.createElement("li");
 
