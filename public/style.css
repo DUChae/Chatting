@@ -46,16 +46,16 @@ body {
   cursor: pointer;
 }
 #username-modal {
-  display: flex; /* Flexbox를 사용하여 중앙 정렬 */
+  display: flex;
   justify-content: center;
   align-items: center;
-  position: fixed; /* 팝업을 화면에 고정 */
+  position: fixed;
   z-index: 1000;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 .modal-content {
@@ -82,33 +82,27 @@ body {
 }
 
 #chat-container {
-  display: none; /* 사용자 이름을 입력하기 전까지 채팅창 숨기기 */
+  display: none;
   flex-direction: column;
   min-height: 100vh;
 }
-.chat-list li {
-  padding: 8px 12px;
-  border-radius: 20px;
-  margin-bottom: 8px;
-  max-width: 70%;
-  word-wrap: break-word; /* 긴 텍스트 줄바꿈 */
-}
 
-.my-message {
-  background-color: #0b93f6; /* 파란색 배경 */
+/* 메시지 스타일 */
+#messages > .my-message {
+  background-color: #0b93f6;
   color: white;
-  margin-left: auto; /* 오른쪽으로 정렬 */
+  margin-left: auto;
   border-bottom-right-radius: 5px;
 }
 
-.other-message {
-  background-color: #e5e5ea; /* 회색 배경 */
+#messages > .other-message {
+  background-color: #e5e5ea;
   color: black;
-  margin-right: auto; /* 왼쪽으로 정렬 */
+  margin-right: auto;
   border-bottom-left-radius: 5px;
 }
 
-.system-message {
+#messages > .system-message {
   text-align: center;
   font-style: italic;
   font-weight: bold;
