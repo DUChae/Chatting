@@ -86,3 +86,32 @@ body {
   flex-direction: column;
   min-height: 100vh;
 }
+.chat-list li {
+  padding: 8px 12px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  max-width: 70%;
+  word-wrap: break-word; /* 긴 텍스트 줄바꿈 */
+}
+
+.my-message {
+  background-color: #0b93f6; /* 파란색 배경 */
+  color: white;
+  margin-left: auto; /* 오른쪽으로 정렬 */
+  border-bottom-right-radius: 5px;
+}
+
+.other-message {
+  background-color: #e5e5ea; /* 회색 배경 */
+  color: black;
+  margin-right: auto; /* 왼쪽으로 정렬 */
+  border-bottom-left-radius: 5px;
+}
+
+.system-message {
+  text-align: center;
+  font-style: italic;
+  font-weight: bold;
+  color: #666;
+  background-color: transparent;
+}
