@@ -33,12 +33,17 @@ socket.on("chat history", (msgs) => {
   messages.innerHTML = ""; // 전역 변수 messages(HTML 요소)에 접근
   msgs.forEach((data) => {
     const item = document.createElement("li");
-    if (data.user === "시스템") {
+    if (data.user == username) {
+      item.classList.add("my-message");
+      item.innerHTML = `${data.msg}`;
+    } else if (data == "시스템") {
+      item.classList.add("system-message");
       item.textContent = data.msg;
-      item.style.fontWeight = "bold";
     } else {
+      item.classList.add("other-message");
       item.innerHTML = `<strong>${data.user}</strong>: ${data.msg}`;
     }
+
     messages.appendChild(item); // 전역 변수 messages(HTML 요소)에 추가
   });
   window.scrollTo(0, document.body.scrollHeight);
@@ -48,10 +53,14 @@ socket.on("chat history", (msgs) => {
 socket.on("chat message", (data) => {
   const item = document.createElement("li");
 
-  if (data.user === "시스템") {
+  if (data.user == username) {
+    item.classList.add("my-message");
+    item.innerHTML = `${data.msg}`;
+  } else if (data.user == "시스템") {
+    item.classList.add("system-message");
     item.textContent = data.msg;
-    item.style.fontWeight = "bold";
   } else {
+    item.classList.add("other-message");
     item.innerHTML = `<strong>${data.user}</strong>: ${data.msg}`;
   }
   messages.appendChild(item);
