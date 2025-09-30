@@ -7,15 +7,29 @@ const usernameModal = document.getElementById("username-modal");
 const usernameInput = document.getElementById("username-input");
 const usernameSubmit = document.getElementById("username-submit");
 const chatContainer = document.getElementById("chat-container");
+const languageSelect = document.getElementById("language-select");
+
 let username;
 
 //유저 이름 제출 시
 usernameSubmit.addEventListener("click", () => {
-  if (usernameInput.value) {
-    username = usernameInput.value;
+  const desiredUsername = usernameInput.value.trim();
+  if (desiredUsername) {
+    //선택한 언어 가져오기
+    const selectedLanguage = languageSelect.value;
+
+    //서버에 유저 이름과 선호 언어 전송
+    socket.emit("new user and lang", {
+      name: desiredUsername,
+      lang: selectedLanguage,
+    });
+
+    //전송 후 클라이언트 전역 변수 설정 및 모달 숨기기
+    username = desiredUsername;
     usernameModal.style.display = "none";
     chatContainer.style.display = "flex";
-    socket.emit("new user", username);
+  } else {
+    alert("이름을 입력해주세요.");
   }
 });
 
@@ -44,6 +58,9 @@ socket.on("chat history", (msgs) => {
       item.innerHTML = `<strong>${data.user}</strong>: ${data.msg}`;
     }
 
+    if (data.originalMsg) {
+      item.title = data.originalMsg; //원본 메시지를 툴팁으로 설정
+    }
     messages.appendChild(item); // 전역 변수 messages(HTML 요소)에 추가
   });
   window.scrollTo(0, document.body.scrollHeight);
