@@ -106,27 +106,6 @@ io.on("connection", async (socket) => {
     });
   });
 
-  // 💡 4. 불필요하고 충돌을 일으키는 이벤트 삭제 (클라이언트가 더 이상 new user를 사용하지 않음)
-  /*
-  socket.on("new user", (name) => {
-    username = name;
-    io.emit("chat message", {
-      user: "시스템",
-      msg: `${username}님이 입장하셨습니다.`,
-    });
-  });
-  */
-
-  // 💡 5. 기존의 'chat history' 로직 삭제 (new user and lang 안에서 처리됨)
-  /*
-  try {
-    const messages = await ChatMessage.find().sort({ timestamp: 1 }).limit(100);
-    socket.emit("chat history", messages);
-  } catch (err) {
-    console.error("채팅 기록 불러오기 오류:", err);
-  }
-  */
-
   //채팅 메시지 수신 시
   socket.on("chat message", async (data) => {
     // DB에는 원본 메시지 저장
