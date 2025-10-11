@@ -2,140 +2,177 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const http = require("http");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
-// Load GCP API Client
-const { TranslationServiceClient } = require("@google-cloud/translate");
+const { TranslationServiceClient } = require("@google-cloud/translate").v3;
 const translateClient = new TranslationServiceClient();
 
-//MongoDB 연결
+const checkAuth = async () => {
+  try {
+    const [response] = await translateClient.getSupportedLanguages({
+      parent: `projects/${process.env.GCP_PROJECT_ID}/locations/global`,
+    });
+    console.log("GCP supported languages:", response.languages?.length || 0);
+  } catch (e) {
+    console.error("GCP 인증/호출 오류:", e.message);
+  }
+};
+checkAuth();
+
 mongoose
-  .connect("mongodb://localhost:27017/chat-app")
+  .connect(process.env.MONGO_URI || "mongodb://localhost:27017/chat-app", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
 const chatMessageSchema = new mongoose.Schema({
   user: String,
   msg: String,
+  translations: { type: Map, of: String, default: {} }, // language -> translated text
   timestamp: { type: Date, default: Date.now },
 });
-
 const ChatMessage = mongoose.model("ChatMessage", chatMessageSchema);
 
 app.use(express.static("public"));
 
-//api 연동 부분 (GCP 로직 유지)
 const translateText = async (text, targetLang) => {
-  if (!text || targetLang === "ko") {
-    return text;
-  }
-
-  const projectId = process.env.GCP_PROJECT_ID;
-  const location = "global";
-
-  const request = {
-    parent: `projects/${projectId}/locations/${location}`,
-    contents: [text],
-    mimeType: "text/plain",
-    targetLanguageCode: targetLang,
-    sourceLanguageCode: "auto",
-  };
+  if (!text) return text; // 빈 문자열은 그대로
 
   try {
+    const projectId = process.env.GCP_PROJECT_ID;
+    const location = "global";
+
+    const request = {
+      parent: `projects/${projectId}/locations/${location}`,
+      contents: [text],
+      mimeType: "text/plain",
+      targetLanguageCode: targetLang,
+      // -> sourceLanguageCode를 제거(또는 미정의)하면 자동 감지 가능
+    };
+
+    console.log("번역 요청:", { targetLang, sampleText: text.slice(0, 200) });
+    // translateText는 v3에서 [response] 형태로 반환
     const [response] = await translateClient.translateText(request);
 
-    if (response.translations && response.translations.length > 0) {
+    // 안전하게 검사 후 번역 반환
+    if (
+      response &&
+      Array.isArray(response.translations) &&
+      response.translations[0]
+    ) {
+      console.log(
+        "번역 결과 예시:",
+        response.translations[0].translatedText.slice(0, 200)
+      );
       return response.translations[0].translatedText;
     }
+
+    // 혹시 응답이 이상하면 원문 반환
     return text;
   } catch (error) {
+    // 에러 메시지와 상세를 로깅
     console.error(
-      `GCP Translation API 오류 (${targetLang}):`,
-      error.details || error.message
+      `GCP 번역 오류 (${targetLang}):`,
+      error.code || error.message || error
     );
-
-    return `[번역 오류 발생]: ${text}`;
+    // 디버깅을 위해 전체 에러 객체도 간단히 출력(개발 환경에서만)
+    console.error(error);
+    // 사용자에게는 번역 실패를 나타내는 문자열 대신 원문 반환(원하면 [번역오류] 접두사 사용)
+    return text;
   }
 };
 
-//유저 연결 시
-io.on("connection", async (socket) => {
+io.on("connection", (socket) => {
   let username = null;
-  // 💡 1. preferredLanguage를 socket 객체의 속성으로 초기화 (다른 곳에서 접근 가능)
   socket.preferredLanguage = "ko";
 
   socket.on("new user and lang", async (data) => {
     username = data.name;
-    // 💡 2. 소켓 객체에 언어 설정 저장
-    socket.preferredLanguage = data.lang;
+    socket.username = data.name;
+    socket.preferredLanguage = data.lang || "ko";
 
-    // 💡 3. 채팅 기록 불러오기와 번역 전송 로직을 이 블록 안으로 이동 (가장 중요)
     try {
       const messages = await ChatMessage.find()
         .sort({ timestamp: 1 })
         .limit(100);
-
-      // 기록된 메시지를 현재 접속 유저의 언어에 맞게 번역하여 전송
       const translatedHistory = await Promise.all(
-        messages.map(async (msg) => {
-          if (msg.user === username) {
-            return { user: msg.user, msg: msg.msg };
+        messages.map(async (msgDoc) => {
+          // 사용자의 자기 메시지는 원문 그대로
+          if (msgDoc.user === username) {
+            return { user: msgDoc.user, msg: msgDoc.msg };
           }
-          // 💡 소켓에 저장된 언어 설정 사용
-          const translatedMsg = await translateText(
-            msg.msg,
+          const cached = msgDoc.translations.get(socket.preferredLanguage);
+          if (cached) return { user: msgDoc.user, msg: cached };
+          const translated = await translateText(
+            msgDoc.msg,
             socket.preferredLanguage
           );
-          return { user: msg.user, msg: translatedMsg };
+          // DB에 캐시 추가 (비동기지만 안전하게 처리)
+          try {
+            msgDoc.translations.set(socket.preferredLanguage, translated);
+            await msgDoc.save();
+          } catch (e) {
+            console.warn("Translation cache save failed:", e.message);
+          }
+          return { user: msgDoc.user, msg: translated };
         })
       );
-
-      // 현재 접속한 유저에게만 번역된 채팅 기록 전송
       socket.emit("chat history", translatedHistory);
     } catch (err) {
-      console.error("채팅 기록 번역/전송 오류:", err);
+      console.error("채팅 기록 로드/번역 오류:", err);
     }
 
-    // 입장 알림
     io.emit("chat message", {
       user: "시스템",
       msg: `${username}님이 입장하셨습니다.`,
     });
   });
 
-  //채팅 메시지 수신 시
   socket.on("chat message", async (data) => {
-    // DB에는 원본 메시지 저장
-    const chatMessage = new ChatMessage({
-      user: data.user,
-      msg: data.msg,
-    });
+    // validation
+    if (!data || !data.user || !data.msg) return;
 
-    await chatMessage.save();
+    let chatMessage;
+    try {
+      chatMessage = new ChatMessage({ user: data.user, msg: data.msg });
+      await chatMessage.save();
+    } catch (e) {
+      console.error("DB 저장 실패:", e);
+      return;
+    }
 
-    // 💡 6. 접속 중인 소켓을 Array.from으로 변환하여 안전하게 순회하며 번역 후 전송
-    Array.from(io.sockets.sockets).forEach(async (receiverSocket) => {
-      // 💡 소켓 객체에 저장된 언어 설정 사용
-      const receiverLang = receiverSocket.preferredLanguage || "ko";
-
-      // 발신자가 보낸 원본 메시지를 수신자의 언어에 맞게 번역
-      const translateMsg = await translateText(data.msg, receiverLang);
-
-      // 번역된 메세지 전송
-      receiverSocket.emit("chat message", {
-        user: data.user,
-        msg: translateMsg,
-        originalMsg: data.msg,
-      });
-    });
+    // 각 접속 소켓에 대해 번역(캐시 재사용)
+    await Promise.all(
+      Array.from(io.of("/").sockets.values()).map(async (receiverSocket) => {
+        if (!receiverSocket.username) return;
+        const receiverLang = receiverSocket.preferredLanguage || "ko";
+        // DB 캐시 확인
+        let translated = chatMessage.translations.get(receiverLang);
+        if (!translated) {
+          translated = await translateText(data.msg, receiverLang);
+          // DB에 캐시 추가(시도)
+          try {
+            chatMessage.translations.set(receiverLang, translated);
+            await chatMessage.save();
+          } catch (e) {
+            console.warn("Translation cache update failed:", e.message);
+          }
+        }
+        receiverSocket.emit("chat message", {
+          user: data.user,
+          msg: translated,
+          originalMsg: data.msg,
+        });
+      })
+    );
   });
 
-  //유저 연결 해제 시
   socket.on("disconnect", () => {
-    console.log("유저가 연결을 끊었습니다.");
     if (username) {
       io.emit("chat message", {
         user: "시스템",
@@ -145,6 +182,6 @@ io.on("connection", async (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log("서버가 http://localhost:3000 에서 실행 중입니다.");
+server.listen(process.env.PORT || 3000, () => {
+  console.log("서버 실행:", process.env.PORT || 3000);
 });
