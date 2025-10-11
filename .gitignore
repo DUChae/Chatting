@@ -16,3 +16,5 @@ Thumbs.db
 
 gcp-key.json
 .env
+.package-lock.json
+package.json
