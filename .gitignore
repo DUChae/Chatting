@@ -13,3 +13,6 @@ yarn-debug.log
 # 운영체제별 임시 파일
 .DS_Store
 Thumbs.db
+
+gcp-key.json
+.env
