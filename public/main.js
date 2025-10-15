@@ -21,32 +21,48 @@ function createTextEl(tag = "div", text = "") {
 // --- 유틸: 메시지 항목 추가 (중앙화) ---
 // data: { user, msg, originalMsg? }, currentUsername: string
 function appendMessage(data, currentUsername) {
-  const item = document.createElement("li");
+  const li = document.createElement("li");
 
-  // 스타일 클래스 관리
+  // 메시지 구분
   if (data.user === currentUsername) {
-    item.classList.add("my-message");
-    // 자기 메시지는 원문(혹은 번역된 메시지)을 그대로 텍스트로 출력
-    item.textContent = data.originalMsg || data.msg;
+    li.classList.add("my-message");
   } else if (data.user === "시스템") {
-    item.classList.add("system-message");
-    item.textContent = data.msg;
+    li.classList.add("system-message");
   } else {
-    item.classList.add("other-message");
-    // 사용자 이름은 강조하지만, 내용은 textContent로 안전하게 추가
-    const nameEl = document.createElement("strong");
+    li.classList.add("other-message");
+  }
+
+  // --- 메시지 내용 ---
+  const nameEl = document.createElement("strong");
+  if (data.user !== "시스템" && data.user !== currentUsername) {
     nameEl.textContent = `${data.user}: `;
-    item.appendChild(nameEl);
-    item.appendChild(document.createTextNode(data.msg));
+    li.appendChild(nameEl);
   }
 
-  // 원본 메시지를 툴팁으로 제공 (있을 때만)
-  if (data.originalMsg) {
-    item.title = data.originalMsg;
+  const messageText = document.createElement("span");
+  messageText.textContent = data.msg;
+  li.appendChild(messageText);
+
+  // --- 🌐 원문 보기 아이콘 (번역 메시지인 경우만) ---
+  if (data.originalMsg && data.originalMsg !== data.msg) {
+    const toggle = document.createElement("span");
+    toggle.textContent = " 🌐";
+    toggle.classList.add("translate-toggle");
+
+    const original = document.createElement("div");
+    original.textContent = data.originalMsg;
+    original.classList.add("original-text");
+
+    toggle.addEventListener("click", () => {
+      original.style.display =
+        original.style.display === "block" ? "none" : "block";
+    });
+
+    li.appendChild(toggle);
+    li.appendChild(original);
   }
 
-  messages.appendChild(item);
-  // 메시지 컨테이너 스크롤을 가장 아래로
+  messages.appendChild(li);
   messages.scrollTop = messages.scrollHeight;
 }
 
