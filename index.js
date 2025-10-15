@@ -9,6 +9,17 @@ const io = new Server(server);
 
 const { TranslationServiceClient } = require("@google-cloud/translate").v3;
 const translateClient = new TranslationServiceClient();
+const translationMemory = new Map();
+
+async function getOrTranslate(text, targetLang) {
+  const key = `${text}::${targetLang}`;
+  if (translationMemory.has(key)) {
+    return translationMemory.get(key);
+  }
+  const translated = await translateText(text, targetLang);
+  translationMemory.set(key, translated);
+  return translated;
+}
 
 const checkAuth = async () => {
   try {
@@ -157,12 +168,15 @@ io.on("connection", (socket) => {
           translated = await translateText(data.msg, receiverLang);
           // DB에 캐시 추가(시도)
           try {
-            chatMessage.translations.set(receiverLang, translated);
-            await chatMessage.save();
+            await ChatMessage.updateOne(
+              { _id: chatMessage._id },
+              { $set: { [`translations.${receiverLang}`]: translated } }
+            );
           } catch (e) {
             console.warn("Translation cache update failed:", e.message);
           }
         }
+
         receiverSocket.emit("chat message", {
           user: data.user,
           msg: translated,
