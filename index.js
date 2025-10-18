@@ -161,6 +161,17 @@ io.on("connection", (socket) => {
     await Promise.all(
       Array.from(io.of("/").sockets.values()).map(async (receiverSocket) => {
         if (!receiverSocket.username) return;
+
+        //본인이 보낸 메세지 원문 그대로 본인에게 전송
+        if (receiverSocket.id === socket.id) {
+          receiverSocket.emit("chat message", {
+            user: data.user,
+            msg: data.msg,
+          });
+          return;
+        }
+
+        //다른 사용자에게 번역 후 전송
         const receiverLang = receiverSocket.preferredLanguage || "ko";
         // DB 캐시 확인
         let translated = chatMessage.translations.get(receiverLang);
