@@ -157,43 +157,43 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // 각 접속 소켓에 대해 번역(캐시 재사용)
-    await Promise.all(
-      Array.from(io.of("/").sockets.values()).map(async (receiverSocket) => {
-        if (!receiverSocket.username) return;
+    // ✅ 1️⃣ 본인에게는 원문 즉시 전송 (Promise.all 밖)
+    socket.emit("chat message", {
+      user: data.user,
+      msg: data.msg,
+      originalMsg: data.msg,
+    });
 
-        //본인이 보낸 메세지 원문 그대로 본인에게 전송
-        if (receiverSocket.id === socket.id) {
+    // ✅ 2️⃣ 다른 사용자들에게만 번역해서 전송
+    await Promise.all(
+      Array.from(io.of("/").sockets.values())
+        .filter((receiverSocket) => receiverSocket.id !== socket.id) // 자기 자신 제외
+        .map(async (receiverSocket) => {
+          if (!receiverSocket.username) return;
+
+          const receiverLang = receiverSocket.preferredLanguage || "ko";
+
+          // DB 캐시 확인
+          let translated = chatMessage.translations.get(receiverLang);
+          if (!translated) {
+            translated = await translateText(data.msg, receiverLang);
+            // DB에 캐시 추가(시도)
+            try {
+              await ChatMessage.updateOne(
+                { _id: chatMessage._id },
+                { $set: { [`translations.${receiverLang}`]: translated } }
+              );
+            } catch (e) {
+              console.warn("Translation cache update failed:", e.message);
+            }
+          }
+
           receiverSocket.emit("chat message", {
             user: data.user,
-            msg: data.msg,
+            msg: translated,
+            originalMsg: data.msg,
           });
-          return;
-        }
-
-        //다른 사용자에게 번역 후 전송
-        const receiverLang = receiverSocket.preferredLanguage || "ko";
-        // DB 캐시 확인
-        let translated = chatMessage.translations.get(receiverLang);
-        if (!translated) {
-          translated = await translateText(data.msg, receiverLang);
-          // DB에 캐시 추가(시도)
-          try {
-            await ChatMessage.updateOne(
-              { _id: chatMessage._id },
-              { $set: { [`translations.${receiverLang}`]: translated } }
-            );
-          } catch (e) {
-            console.warn("Translation cache update failed:", e.message);
-          }
-        }
-
-        receiverSocket.emit("chat message", {
-          user: data.user,
-          msg: translated,
-          originalMsg: data.msg,
-        });
-      })
+        })
     );
   });
 
