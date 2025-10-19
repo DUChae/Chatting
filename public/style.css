@@ -8,63 +8,74 @@
 
 body {
   font-family: "Inter", sans-serif;
-  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  background: radial-gradient(circle at top left, #f9fafb, #eef2ff 70%);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  color: #222;
+  color: #1f2937;
 }
 
-/* 채팅 전체 컨테이너 */
+/* 🔹 채팅 전체 컨테이너 */
 #chat-container {
   display: none;
   flex-direction: column;
   min-height: 100vh;
+  background: #ffffff;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.06);
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
 }
 
-/* 메시지 목록 */
+/* 🔹 메시지 목록 */
 #messages {
-  list-style-type: none;
+  list-style: none;
   margin: 0;
-  padding: 24px;
+  padding: 28px;
   flex-grow: 1;
   overflow-y: auto;
   scroll-behavior: smooth;
+  background: #f8fafc;
 }
 
-/* 공통 메시지 박스 */
+/* 🔹 공통 메시지 박스 */
 #messages > li {
-  padding: 10px 16px;
-  margin-bottom: 10px;
-  border-radius: 16px;
+  padding: 12px 18px;
+  margin-bottom: 14px;
+  border-radius: 18px;
   width: fit-content;
-  max-width: 70%;
-  line-height: 1.4;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  max-width: 75%;
+  line-height: 1.5;
   animation: fadeIn 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* 나의 메시지 */
+/* 🔹 나의 메시지 */
 #messages > .my-message {
-  background-color: #4f46e5;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
   margin-left: auto;
-  border-bottom-right-radius: 4px;
-  transition: transform 0.2s ease;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.25);
 }
 #messages > .my-message:hover {
-  transform: scale(1.02);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(99, 102, 241, 0.35);
 }
 
-/* 상대 메시지 */
+/* 🔹 상대 메시지 */
 #messages > .other-message {
-  background-color: #e2e8f0;
-  color: #111827;
+  background: #ffffff;
+  color: #1f2937;
   margin-right: auto;
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: 6px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* 시스템 메시지 */
+/* 🔹 시스템 메시지 */
 #messages > .system-message {
   text-align: center;
   font-style: italic;
@@ -72,50 +83,53 @@ body {
   color: #6b7280;
   background: none;
   box-shadow: none;
-  margin: 10px auto;
+  margin: 12px auto;
 }
 
-/* 메시지 입력 폼 */
+/* 🔹 메시지 입력 폼 */
 #form {
-  padding: 12px;
-  background: white;
+  padding: 16px;
+  background: #ffffffcc;
   display: flex;
   position: sticky;
   bottom: 0;
   border-top: 1px solid #e5e7eb;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  align-items: center;
 }
 
 #form > input {
-  border: 1px solid #d1d5db;
-  padding: 12px;
+  border: none;
+  padding: 14px 18px;
   flex-grow: 1;
   border-radius: 30px;
-  margin-right: 10px;
+  margin-right: 12px;
   font-size: 15px;
-  outline: none;
-  transition: border-color 0.2s ease;
+  background: #f3f4f6;
+  transition: all 0.25s ease;
 }
 #form > input:focus {
-  border-color: #6366f1;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  outline: none;
 }
 
 #form > button {
-  background: #6366f1;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
   border: none;
-  padding: 12px 22px;
+  padding: 13px 26px;
   border-radius: 30px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.1s ease;
+  transition: transform 0.15s ease, box-shadow 0.3s ease;
 }
 #form > button:hover {
-  background: #4f46e5;
-  transform: scale(1.03);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(79, 70, 229, 0.35);
 }
 
-/* 유저명 입력 모달 */
+/* 🔹 유저명 입력 모달 */
 #username-modal {
   display: flex;
   justify-content: center;
@@ -126,41 +140,72 @@ body {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(3px);
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(5px);
 }
 
 .modal-content {
   background-color: white;
-  padding: 30px 40px;
-  border-radius: 12px;
+  padding: 40px 50px;
+  border-radius: 16px;
   text-align: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
   animation: popIn 0.3s ease;
 }
 
 #username-input,
 #username-submit {
-  padding: 12px;
-  margin-top: 12px;
-  width: 220px;
-  border-radius: 6px;
+  padding: 14px;
+  margin-top: 14px;
+  width: 240px;
+  border-radius: 8px;
   border: 1px solid #d1d5db;
   font-size: 15px;
 }
 
 #username-submit {
-  background-color: #6366f1;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: white;
   border: none;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
 }
 #username-submit:hover {
-  background-color: #4f46e5;
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  transform: translateY(-1px);
 }
 
-/* 애니메이션 */
+/* 🔹 🌐 번역 토글 버튼 */
+.translate-toggle {
+  cursor: pointer;
+  margin-left: 8px;
+  color: #6366f1;
+  font-size: 0.95em;
+  vertical-align: middle;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.translate-toggle:hover {
+  transform: scale(1.2);
+  color: #4f46e5;
+}
+
+/* 🔹 🌐 원문 텍스트 */
+.original-text {
+  display: none;
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border-left: 3px solid #6366f1;
+  border-radius: 8px;
+  font-size: 0.9em;
+  color: #374151;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  animation: slideDown 0.25s ease;
+}
+
+/* 🔹 애니메이션 */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -183,38 +228,6 @@ body {
   }
 }
 
-/* 🌐 번역 토글 버튼 */
-.translate-toggle {
-  cursor: pointer;
-  margin-left: 8px;
-  color: #6366f1;
-  font-size: 0.95em;
-  vertical-align: middle;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.translate-toggle:hover {
-  transform: scale(1.2);
-  color: #4f46e5;
-}
-
-/* 🌐 원문 텍스트 (초기에는 숨김 상태) */
-.original-text {
-  display: none; /* ✅ 기본적으로 숨김 */
-  margin-top: 8px;
-  padding: 10px 14px;
-  background: #f9fafb;
-  border-left: 3px solid #6366f1;
-  border-radius: 8px;
-  font-size: 0.9em;
-  color: #374151;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  animation: slideDown 0.25s ease;
-}
-
-/* 🌐 원문 텍스트 슬라이드 애니메이션 */
 @keyframes slideDown {
   from {
     opacity: 0;
