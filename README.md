@@ -1,127 +1,86 @@
-# 🌐 Real-Time Multilingual Chat (다국어 실시간 번역 채팅 웹)
-
-> 서로 다른 언어를 사용하는 사람들이 **자신의 언어로 대화해도 실시간으로 소통할 수 있는 웹 채팅 서비스**  
-> Node.js, Socket.io, Google Cloud Translation API를 활용하여 구현하였습니다.
+# 🌐 Real-time Multi-language Chat Web
 
 ---
 
-## 📌 프로젝트 개요
+## 🖼️ 대표 실행 화면
 
-이 프로젝트의 목표는 **언어의 장벽을 허무는 실시간 커뮤니케이션 플랫폼**을 만드는 것입니다.  
-사용자는 한국어, 영어, 일본어 등 자신이 편한 언어로 메시지를 입력하면,  
-서버가 Google Cloud Translation API를 통해 다른 사용자들의 언어로 자동 번역하여 전달합니다.
+> 아래는 프로젝트 실행 시의 대표 예시입니다.  
+> 예: 한국인, 미국인, 일본인이 서로 다른 언어로 대화하며 번역된 메시지를 실시간으로 확인하는 장면.
 
-즉, 각 사용자는 **"자신의 언어로만 대화하지만 모든 사용자가 서로 이해할 수 있는"** 환경을 경험하게 됩니다.
+![실시간 번역 채팅 예시](./public/img/Thumbnail.png)
+
+실시간 다국어 채팅 웹 서비스입니다.  
+한국인, 미국인, 일본인 등 서로 다른 언어 사용자들이 **자신의 언어로 입력한 메시지를 자동 번역**하여 실시간으로 대화할 수 있습니다.  
+Socket.io를 기반으로 한 양방향 통신과 Google Cloud Translation API를 통해 **즉각적인 언어 변환**을 제공합니다.
+
+---
+
+## 🚀 프로젝트 개요
+
+- **개발 목적**: 언어 장벽 없이 자연스럽게 대화할 수 있는 실시간 채팅 환경 구축
+- **핵심 기능**: 메시지 자동 번역, 국가별 언어 감지, 실시간 소켓 통신, 채팅 내역 저장 및 삭제
+- **개발 기간**: 2025.09 ~ 2025.10
+- **개발 인원**: 1인 (개인 프로젝트)
+
+---
+
+## 🧩 기술 스택
+
+| 구분            | 기술                         |
+| --------------- | ---------------------------- |
+| **Frontend**    | HTML, CSS, JavaScript        |
+| **Backend**     | Node.js, Express             |
+| **Real-time**   | Socket.io                    |
+| **Database**    | MongoDB (Mongoose)           |
+| **API**         | Google Cloud Translation API |
+| **Environment** | dotenv, nodemon              |
 
 ---
 
 ## ⚙️ 주요 기능
 
-- **실시간 채팅 (Socket.io 기반)**
+### 1. 실시간 다국어 채팅
 
-  - 모든 클라이언트가 즉시 메시지를 주고받을 수 있습니다.
-  - 새 사용자가 입장하거나 퇴장할 때 시스템 메시지가 자동으로 전송됩니다.
+- Socket.io를 이용해 사용자 간 실시간 메시지 송수신
+- Google Translate API로 자동 번역 처리
 
-- **자동 번역 기능 (Google Cloud Translation API)**
+### 2. 사용자 국가 언어 감지
 
-  - 사용자가 설정한 언어로 자동 번역됩니다.
-  - 메시지마다 번역 결과를 캐싱하여 불필요한 API 호출을 최소화했습니다.
+- 입력된 국가 정보를 기반으로 자동 언어 설정
 
-- **다국어 사용자 지원**
+### 3. 메시지 저장 및 초기화
 
-  - 한국어, 영어, 일본어 등 다국어 사용자를 동시에 지원합니다.
-  - 각 사용자는 자신의 언어로만 채팅 내용을 확인할 수 있습니다.
-
-- **번역 캐싱 (MongoDB 기반)**
-  - 동일 문장의 반복 번역을 줄이기 위해 MongoDB에 번역 결과를 저장합니다.
-  - 성능 최적화 및 API 호출 비용 절감을 동시에 달성했습니다.
+- MongoDB에 채팅 내역 저장
+- 관리용 스크립트(`clearChat.js`)로 전체 대화 삭제 가능
 
 ---
 
-## 🧠 기술 스택
+## 🧱 프로젝트 구조
 
-| 분야                        | 사용 기술                         |
-| --------------------------- | --------------------------------- |
-| **Backend**                 | Node.js, Express.js               |
-| **Real-Time Communication** | Socket.io                         |
-| **Database**                | MongoDB, Mongoose                 |
-| **Translation API**         | Google Cloud Translation API (v3) |
-| **Environment**             | dotenv                            |
-| **Runtime**                 | Node.js v20                       |
-
----
-
-## 🧩 시스템 구조
-
-\`\`\`bash
-📂 node_prac/
-┣ 📂 public/ # 클라이언트(프론트엔드) 정적 파일
-┃ ┣ index.html # 기본 채팅 UI
-┃ ┗ style.css # UI 스타일
-┣ 📜 index.js # 서버 진입점 (Express + Socket.io)
-┣ 📜 clearChat.js # DB 대화 내용 초기화 스크립트
-┣ 📜 .env # 환경 변수 파일 (MongoDB URI, GCP 인증 정보)
-┣ 📜 package.json
-┗ 📜 README.md
-\`\`\`
+```
+node_prac/
+├── public/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+├── index.js
+├── clearChat.js
+├── package.json
+├── .env
+└── README.md
+```
 
 ---
 
-## 🧱 주요 구현 내용
+## 🔧 개선 아이디어
 
-### 1️⃣ Socket.io를 이용한 실시간 채팅
-
-- 클라이언트가 \`socket.emit("chat message", data)\`로 메시지를 전송하면  
-  서버에서 \`io.emit("chat message", data)\`로 전체 사용자에게 전달합니다.
-- 입장 시 \`socket.emit("new user and lang")\` 이벤트로 언어 정보를 서버에 전달합니다.
-- 서버는 언어별로 번역된 채팅 내역을 불러와 사용자에게 맞게 전송합니다.
-
-### 2️⃣ Google Cloud Translation API 연동
-
-- 서버 측에서 번역을 처리하여 클라이언트는 오직 번역 결과만 수신합니다.
-- \`TranslationServiceClient\`를 사용하여 Google Cloud Translation v3 API 호출.
-- 메시지 원문과 번역 결과는 MongoDB에 저장되어,  
-  동일 문장의 반복 번역 시 API 호출을 생략합니다.
-
-### 3️⃣ MongoDB 기반 메시지 및 번역 캐시 저장
-
-\`\`\`js
-const chatMessageSchema = new mongoose.Schema({
-user: String,
-msg: String,
-translations: { type: Map, of: String, default: {} },
-timestamp: { type: Date, default: Date.now },
-});
-\`\`\`
-
-- \`translations\` 필드(Map 타입)를 통해  
-  \`언어코드 → 번역문\` 형태로 저장합니다.
-- 이 구조를 통해 다국어 번역 결과를 효율적으로 관리합니다.
-
-### 4️⃣ 번역 캐시 로직
-
-- 새 메시지가 등록될 때:
-
-  1. 원문 저장
-  2. 다른 사용자의 언어로 번역
-  3. 번역 결과를 DB에 캐시
-
-- 이미 번역된 문장이 있으면, API 호출 없이 DB의 캐시를 즉시 사용합니다.
+- 사용자 언어 자동 감지 고도화 (브라우저 언어 기반)
+- 번역 API 호출 최적화 (중복 번역 최소화)
+- 사용자별 메시지 로그 다운로드 기능 추가
 
 ---
 
-## 🧰 개선 아이디어
+## 📎 개발자 메모
 
-- JWT 인증을 통한 사용자 로그인 기능 추가
-- WebSocket 클러스터링 (Redis Pub/Sub)으로 확장성 개선
-- 번역 품질 향상을 위한 언어 감지 및 캐싱 정책 고도화
-
----
-
-## 👨‍💻 개발자 메모
-
-이 프로젝트는 단순한 채팅 앱을 넘어서,  
-“**기술이 언어의 벽을 허무는 방식**”을 실험적으로 보여주는 목적을 가지고 있습니다.
-
-Node.js의 실시간 처리 능력과 Google Cloud의 AI 번역 기능이  
-서로 맞물려 인간의 언어적 한계를 기술적으로 완화시키는 작은 예시입니다.
+본 프로젝트는 **실시간 통신과 번역 API 연동의 구조적 이해**를 목표로 제작되었습니다.  
+단순한 기능 구현을 넘어, 다국어 환경에서도 안정적으로 작동하는 데이터 흐름을 설계하는 데 중점을 두었습니다.
